@@ -8,6 +8,17 @@
   <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
   <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <script src="swagger-ws-client.js"></script>
   <style>
     html
     {
@@ -65,7 +76,38 @@
   </defs>
 </svg>
 
-<div id="swagger-ui"></div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-6">
+      <div id="swagger-ui"></div>
+    </div>
+    <div class="col-lg-6" style="margin-top: 20px;">
+      <div class="row">
+        <div class="form-group col-lg-8">
+          <input type="text" class="form-control" placeholder="WebSocket URL" id="input-wsurl" value="ws://echo.websocket.org" />
+
+        </div>
+        <div class="col-lg-4">
+          <button class="btn btn-primary btn-success" id="btn-connectws">Connect</button>
+          <button class="btn btn-primary btn-warning" id="btn-disconnectws">Disconnect</button>
+          <button class="btn btn-info" id="btn-bindexecute">Bind</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <table class="table">
+          <tbody id="table-ws-communication">
+
+          </tbody>
+        </table>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+
 
 <script src="./swagger-ui-bundle.js"> </script>
 <script src="./swagger-ui-standalone-preset.js"> </script>
@@ -87,6 +129,36 @@ window.onload = function() {
 
   window.ui = ui
 }
+
+$(document).ready(function(e) {
+
+    var config = {
+        onopen: function(e) {
+         $('#btn-disconnectws').show();
+         $('#btn-connectws').hide();
+        },
+        onclose: function(e) {
+           $('#btn-disconnectws').hide();
+           $('#btn-connectws').show();
+        },
+        onmessage: function(e) {
+            var data = e.data;
+            var htm = '<tr><td>&nbsp;</td><td>'+data+'</td></tr>';
+            $('#table-ws-communication').append(htm);
+        }
+    };
+    window.wsclient = new SwaggerWSClient(config);
+    $('#btn-connectws').on('click', function(e) {
+        var url = $('#input-wsurl').val();
+        wsclient.connect(url)
+    });
+
+    wsclient.connect('ws://echo.websocket.org');
+
+    $('#btn-bindexecute').on('click', function(e) {
+        window.wsclient.bindUIEvents();
+    });
+});
 </script>
 </body>
 
